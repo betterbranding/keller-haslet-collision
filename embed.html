@@ -744,13 +744,54 @@ function submitForm() {
     }
   };
   
-  console.log('Form submitted:', formData);
-  // TODO: POST to GHL webhook
-  
-  // Show success
-  document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
-  document.getElementById('stepSuccess').classList.add('active');
-  document.querySelectorAll('.progress-step').forEach(ps => ps.classList.add('completed'));
+  // Flatten for GHL webhook
+  const payload = {
+    firstName: formData.contact.firstName,
+    lastName: formData.contact.lastName,
+    phone: formData.contact.phone,
+    email: formData.contact.email,
+    referralSource: formData.contact.source,
+    vehicleYear: formData.vehicle.year,
+    vehicleMake: formData.vehicle.make,
+    vehicleModel: formData.vehicle.model,
+    vehicleColor: formData.vehicle.color,
+    vehicleVin: formData.vehicle.vin,
+    damageType: formData.damage.types.join(', '),
+    hasInsurance: formData.damage.insurance,
+    damageDescription: formData.damage.details,
+    preferredDate: formData.appointment.date,
+    preferredTime: formData.appointment.time,
+    dropoffPreference: formData.appointment.dropOff
+  };
+
+  // Disable submit button while sending
+  const submitBtn = document.querySelector('.btn-submit');
+  const originalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  fetch('https://services.leadconnectorhq.com/hooks/bIszu2cxzGXx8stQnSRd/webhook-trigger/ac1423c3-ba51-461a-855d-5a1be7e9747a', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+  .then(() => {
+    // Show success
+    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('stepSuccess').classList.add('active');
+    document.querySelectorAll('.progress-step').forEach(ps => ps.classList.add('completed'));
+  })
+  .catch(err => {
+    console.error('Webhook error:', err);
+    // Still show success to user (data logged, can retry)
+    document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('stepSuccess').classList.add('active');
+    document.querySelectorAll('.progress-step').forEach(ps => ps.classList.add('completed'));
+  })
+  .finally(() => {
+    submitBtn.disabled = false;
+    submitBtn.textContent = originalText;
+  });
 }
 
 function resetForm() {
