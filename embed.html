@@ -748,7 +748,7 @@ function submitForm() {
   const payload = {
     firstName: formData.contact.firstName,
     lastName: formData.contact.lastName,
-    phone: formData.contact.phone,
+    phone: '+1' + formData.contact.phone.replace(/\D/g, ''),
     email: formData.contact.email,
     referralSource: formData.contact.source,
     vehicleYear: formData.vehicle.year,
